@@ -5,30 +5,26 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Helpers\ApiResponseHelper;
 
 class ApiAuthMiddleware
 {
     /**
      * Handle an incoming request.
      * 
-     * This middleware handles API authentication.
-     * Can be extended to support JWT, Sanctum, or other auth methods.
+     * This middleware handles API authentication using Sanctum tokens.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is authenticated
-        if (!auth()->check()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Unauthorized',
-                'data' => null,
-                'errors' => ['Authentication required'],
-            ], 401);
+        // Check if user is authenticated via Sanctum token
+        if (!auth('sanctum')->check()) {
+            return ApiResponseHelper::unauthorized('Authentication required. Please provide a valid token.');
         }
 
         return $next($request);
     }
 }
+
 

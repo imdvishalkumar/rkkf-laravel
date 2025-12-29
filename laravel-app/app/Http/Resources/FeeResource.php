@@ -26,3 +26,4 @@ class FeeResource extends JsonResource
     }
 }
 
+

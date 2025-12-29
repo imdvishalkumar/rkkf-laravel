@@ -416,3 +416,4 @@ class Student extends Model
 
 **Reference:** `SAMPLE_IMPLEMENTATION_STUDENT.md` has the complete working example!
 
+

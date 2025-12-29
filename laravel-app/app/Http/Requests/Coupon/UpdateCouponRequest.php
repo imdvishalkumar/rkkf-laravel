@@ -30,3 +30,4 @@ class UpdateCouponRequest extends FormRequest
     }
 }
 
+

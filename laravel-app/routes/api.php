@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\StudentApiController;
 use App\Http\Controllers\Api\OrderApiController;
 use App\Http\Controllers\Api\ExamApiController;
 use App\Http\Controllers\Api\EventApiController;
+use App\Http\Controllers\Api\AuthApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,8 +21,16 @@ use App\Http\Controllers\Api\EventApiController;
 |
 */
 
-// All API routes require authentication
-Route::middleware(['auth'])->group(function () {
+// ==================== AUTHENTICATION ROUTES (Public) ====================
+Route::post('/login', [AuthApiController::class, 'login'])->name('api.login');
+
+// ==================== PROTECTED API ROUTES (Require Token) ====================
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    // Authentication routes (require token)
+    Route::get('/me', [AuthApiController::class, 'me'])->name('api.me');
+    Route::post('/logout', [AuthApiController::class, 'logout'])->name('api.logout');
+    Route::post('/logout-all', [AuthApiController::class, 'logoutAll'])->name('api.logout-all');
     
     // ==================== ATTENDANCE API ROUTES ====================
     

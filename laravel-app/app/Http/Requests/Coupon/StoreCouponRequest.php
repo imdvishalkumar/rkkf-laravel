@@ -21,3 +21,4 @@ class StoreCouponRequest extends FormRequest
     }
 }
 
+
