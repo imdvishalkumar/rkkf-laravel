@@ -24,9 +24,10 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Check if user exists and has role = 1 (admin)
+        // Check if user exists and has admin role (using config instead of hard-coding)
+        $adminRole = config('roles.roles.admin', 1);
         $user = User::where('email', $credentials['email'])
-            ->where('role', 1)
+            ->where('role', $adminRole)
             ->first();
 
         if ($user) {
@@ -46,16 +47,18 @@ class AuthController extends Controller
                 Auth::login($user);
                 $request->session()->regenerate();
 
-                // Handle special email redirects (from original login.php)
-                if ($credentials['email'] === 'savvyswaraj@gmail.com') {
-                    return redirect()->route('club.view.fees');
-                } elseif ($credentials['email'] === 'tmc@gmail.com') {
-                    return redirect()->route('tmc.view.fees');
-                } elseif ($credentials['email'] === 'baroda@gmail.com') {
-                    return redirect()->route('baroda.view.fees');
+                // Handle special email redirects using config (replaces hard-coded emails)
+                $specialUsers = config('roles.special_users', []);
+                if (isset($specialUsers[$credentials['email']])) {
+                    $redirectRoute = $specialUsers[$credentials['email']]['redirect_route'] ?? null;
+                    if ($redirectRoute && \Route::has($redirectRoute)) {
+                        return redirect()->route($redirectRoute);
+                    }
                 }
 
-                return redirect()->intended(route('dashboard'));
+                // Default redirect based on role
+                $defaultRoute = config('roles.default_routes.admin', 'dashboard');
+                return redirect()->intended(route($defaultRoute));
             }
         }
 

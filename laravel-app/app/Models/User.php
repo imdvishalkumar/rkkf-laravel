@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Enums\UserRole;
 
 class User extends Authenticatable
 {
@@ -49,6 +50,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
@@ -61,18 +63,48 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is admin (role = 1)
+     * Check if user is admin (using enum)
      */
     public function isAdmin(): bool
     {
-        return $this->role == 1;
+        return $this->role === UserRole::ADMIN;
     }
 
     /**
-     * Check if user is instructor (role = 2)
+     * Check if user is instructor (using enum)
      */
     public function isInstructor(): bool
     {
-        return $this->role == 2;
+        return $this->role === UserRole::INSTRUCTOR;
+    }
+
+    /**
+     * Get role label
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return $this->role?->label() ?? 'Unknown';
+    }
+
+    /**
+     * Check if user is a special user (from config)
+     */
+    public function isSpecialUser(): bool
+    {
+        $specialUsers = config('roles.special_users', []);
+        return isset($specialUsers[$this->email]);
+    }
+
+    /**
+     * Get special user redirect route
+     */
+    public function getSpecialUserRedirectRoute(): ?string
+    {
+        if (!$this->isSpecialUser()) {
+            return null;
+        }
+
+        $specialUsers = config('roles.special_users', []);
+        return $specialUsers[$this->email]['redirect_route'] ?? null;
     }
 }
