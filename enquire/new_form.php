@@ -5,7 +5,7 @@ include_once( "../connection.php" );
 include_once( "../page_title.php" );
 
 //$queryForBranch = "SELECT * FROM branch WHERE branch_id NOT IN (40,44,45,46,47,48,49,50,52,53,54)";
-$queryForBranch = "SELECT * FROM branch WHERE branch_id IN (66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,87,89,90)";
+$queryForBranch = "SELECT * FROM branch WHERE branch_id IN (66,69,38,43,60,70,86,29,28,64,71,39,72,42,73,31,75,37,76,65,77,41,78,32,67,34,68,25,83)";
 $resultForBranch = $con->query( $queryForBranch );
 
 ?>

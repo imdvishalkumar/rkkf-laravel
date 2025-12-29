@@ -1,10 +1,10 @@
 <?php
 
- $keyId = 'rzp_live_mIOl9EumVuJ0BB';
- $keySecret = '6TtZ8RXwbMWnpBFbasayRvox';
+ $keyId = 'rzp_live_wwwwwwwwww';
+ $keySecret = '6TtZ8RXw324rdDSasayRvox';
 
-//  $keyId = 'rzp_test_3C3OO06aum2ZSU';
-//  $keySecret = 'LpPnr0y9lCmzP5Ps12igD8OW';
+//  $keyId = '6TtZ8asdwedDSasayRvox';
+//  $keySecret = 'LpPnr0y9sadweqw12igD8OW';
 
 $displayCurrency = 'INR';
 

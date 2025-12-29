@@ -52,7 +52,7 @@ if ( $auth->isAuth() ) {
 
         if ( true ) {
             if ( $type == "monthlyFees" ) {
-                $keySecret = "6TtZ8RXwbMWnpBFbasayRvox";
+                $keySecret = "6TtZ8RXw324rdDSasayRvox";
                 $sig = hash_hmac( 'sha256', $orderId."|".$paymentId, $keySecret );
                 $update = "update transcation set status = 1 where order_id ='".$orderId."'";
                 $query_stmt = $conn->prepare( $update );

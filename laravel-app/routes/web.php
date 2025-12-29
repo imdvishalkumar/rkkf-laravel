@@ -16,6 +16,12 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\NewsFeedController;
 use App\Http\Controllers\GuideController;
+use App\Http\Controllers\PageController;
+
+// Public Pages (No authentication required)
+Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
+Route::get('/refund-policy', [PageController::class, 'refund'])->name('refund');
+Route::get('/terms-of-service', [PageController::class, 'terms'])->name('terms');
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');

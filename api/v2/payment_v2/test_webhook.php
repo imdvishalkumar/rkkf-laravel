@@ -20,7 +20,7 @@ if ( $webhook->event == "payment.authorized" ) {
 
     if ( $desc == "monthlyFees" ) {
         
-        $keySecret = "6TtZ8RXwbMWnpBFbasayRvox";
+        $keySecret = "6TtZ8RXw324rdDSasayRvox";
         $webhookSignature = hash_hmac( 'sha256', $webhookBody, $keySecret );
         $webhookSecret = $keySecret;
         

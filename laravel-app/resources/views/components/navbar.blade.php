@@ -18,17 +18,17 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('privacy') }}" class="nav-link">
+            <a href="{{ route('privacy') }}" class="nav-link" target="_blank">
                 <span class="d-none d-md-inline">Privacy Statement</span>
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('refund') }}" class="nav-link">
+            <a href="{{ route('refund') }}" class="nav-link" target="_blank">
                 <span class="d-none d-md-inline">Refund Policy</span>
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('terms') }}" class="nav-link">
+            <a href="{{ route('terms') }}" class="nav-link" target="_blank">
                 <span class="d-none d-md-inline">Terms Of Service</span>
             </a>
         </li>
