@@ -72,7 +72,7 @@ class AuthApiController extends Controller
                     'lastname' => $user->lastname,
                     'email' => $user->email,
                     'mobile' => $user->mobile,
-                    'role' => $user->role,
+                    'role' => ApiResponseHelper::getRoleValue($user->role),
                 ],
                 'token' => $token,
                 'token_type' => 'Bearer',

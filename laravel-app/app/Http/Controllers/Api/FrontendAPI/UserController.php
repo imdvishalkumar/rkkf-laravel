@@ -42,7 +42,7 @@ class UserController extends Controller
                     'lastname' => $result['user']->lastname,
                     'email' => $result['user']->email,
                     'mobile' => $result['user']->mobile,
-                    'role' => $result['user']->role,
+                    'role' => ApiResponseHelper::getRoleValue($result['user']->role),
                 ],
                 'token' => $token,
                 'token_type' => 'Bearer',
@@ -84,7 +84,7 @@ class UserController extends Controller
                     'lastname' => $result['user']->lastname,
                     'email' => $result['user']->email,
                     'mobile' => $result['user']->mobile,
-                    'role' => $result['user']->role,
+                    'role' => ApiResponseHelper::getRoleValue($result['user']->role),
                 ],
             ], $result['message']);
 

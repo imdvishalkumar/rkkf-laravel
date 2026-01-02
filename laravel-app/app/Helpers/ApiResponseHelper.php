@@ -116,6 +116,17 @@ class ApiResponseHelper
         $code = $e->getCode();
         return (is_numeric($code) && $code > 0 && $code < 600) ? (int)$code : $default;
     }
+
+    /**
+     * Get role value from enum or integer
+     */
+    public static function getRoleValue($role): int
+    {
+        if ($role instanceof \BackedEnum) {
+            return $role->value;
+        }
+        return (int)$role;
+    }
 }
 
 

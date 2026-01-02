@@ -80,7 +80,7 @@ class InstructorManagementController extends Controller
                     'lastname' => $instructor->lastname,
                     'email' => $instructor->email,
                     'mobile' => $instructor->mobile,
-                    'role' => $instructor->role,
+                    'role' => ApiResponseHelper::getRoleValue($instructor->role),
                 ],
             ], 'Instructor retrieved successfully');
 
@@ -120,7 +120,7 @@ class InstructorManagementController extends Controller
                     'lastname' => $result['user']->lastname,
                     'email' => $result['user']->email,
                     'mobile' => $result['user']->mobile,
-                    'role' => $result['user']->role,
+                    'role' => ApiResponseHelper::getRoleValue($result['user']->role),
                 ],
             ], $result['message']);
 
@@ -159,7 +159,7 @@ class InstructorManagementController extends Controller
                     'lastname' => $result['user']->lastname,
                     'email' => $result['user']->email,
                     'mobile' => $result['user']->mobile,
-                    'role' => $result['user']->role,
+                    'role' => ApiResponseHelper::getRoleValue($result['user']->role),
                 ],
             ], $result['message']);
 

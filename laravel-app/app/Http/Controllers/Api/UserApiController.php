@@ -31,7 +31,7 @@ class UserApiController extends Controller
                 'lastname' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|string|min:6',
-                'role' => 'required|integer|in:1,2',
+                'role' => 'required|integer|in:0,1,2', // 0 = User, 1 = Admin, 2 = Instructor
                 'mobile' => 'nullable|string|max:20',
             ]);
 
@@ -44,7 +44,7 @@ class UserApiController extends Controller
                     'lastname' => $result['user']->lastname,
                     'email' => $result['user']->email,
                     'mobile' => $result['user']->mobile,
-                    'role' => $result['user']->role,
+                    'role' => ApiResponseHelper::getRoleValue($result['user']->role),
                 ],
             ], $result['message']);
 

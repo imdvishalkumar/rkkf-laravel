@@ -75,7 +75,7 @@ class UserManagementController extends Controller
                     'lastname' => $user->lastname,
                     'email' => $user->email,
                     'mobile' => $user->mobile,
-                    'role' => $user->role,
+                    'role' => ApiResponseHelper::getRoleValue($user->role),
                 ],
             ], 'User retrieved successfully');
 
@@ -113,7 +113,7 @@ class UserManagementController extends Controller
                     'lastname' => $result['user']->lastname,
                     'email' => $result['user']->email,
                     'mobile' => $result['user']->mobile,
-                    'role' => $result['user']->role,
+                    'role' => ApiResponseHelper::getRoleValue($result['user']->role),
                 ],
             ], $result['message']);
 
@@ -152,7 +152,7 @@ class UserManagementController extends Controller
                     'lastname' => $result['user']->lastname,
                     'email' => $result['user']->email,
                     'mobile' => $result['user']->mobile,
-                    'role' => $result['user']->role,
+                    'role' => ApiResponseHelper::getRoleValue($result['user']->role),
                 ],
             ], $result['message']);
 
