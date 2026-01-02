@@ -10,6 +10,12 @@ use App\Http\Controllers\Api\ExamApiController;
 use App\Http\Controllers\Api\EventApiController;
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\UserApiController;
+use App\Http\Controllers\Api\FrontendAPI\UserController as FrontendUserController;
+use App\Http\Controllers\Api\FrontendAPI\InstructorController as FrontendInstructorController;
+use App\Http\Controllers\Api\FrontendAPI\AuthController as FrontendAuthController;
+use App\Http\Controllers\Api\AdminAPI\SuperAdminController;
+use App\Http\Controllers\Api\AdminAPI\UserManagementController;
+use App\Http\Controllers\Api\AdminAPI\InstructorManagementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +33,18 @@ Route::post('/login', [AuthApiController::class, 'login'])->name('api.login');
 
 // ==================== USER MANAGEMENT ROUTES (Public - for registration) ====================
 Route::post('/users', [UserApiController::class, 'store'])->name('api.users.store');
+
+// ==================== FRONTEND API ROUTES (Public - Registration) ====================
+// User Registration & Login
+Route::post('/frontend/user/register', [FrontendUserController::class, 'register'])->name('api.frontend.user.register');
+Route::post('/frontend/user/login', [FrontendAuthController::class, 'loginUser'])->name('api.frontend.user.login');
+
+// Instructor Registration & Login
+Route::post('/frontend/instructor/register', [FrontendInstructorController::class, 'register'])->name('api.frontend.instructor.register');
+Route::post('/frontend/instructor/login', [FrontendAuthController::class, 'loginInstructor'])->name('api.frontend.instructor.login');
+
+// ==================== ADMIN API ROUTES (Public - Super Admin Login) ====================
+Route::post('/admin/super-admin/login', [SuperAdminController::class, 'login'])->name('api.admin.super-admin.login');
 
 // ==================== PROTECTED API ROUTES (Require Token) ====================
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -202,6 +220,37 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Set student/fee status (call flag)
     Route::post('/set-status', [StudentApiController::class, 'setStatus'])->name('api.set-status');
+    
+    // ==================== FRONTEND API ROUTES (Protected) ====================
+    
+    // User Management (Users can manage their own profile)
+    Route::put('/frontend/user/{id}', [FrontendUserController::class, 'update'])->name('api.frontend.user.update');
+    Route::delete('/frontend/user/{id}', [FrontendUserController::class, 'delete'])->name('api.frontend.user.delete');
+    
+    // Instructor Management (Instructors can manage their own profile)
+    Route::put('/frontend/instructor/{id}', [FrontendInstructorController::class, 'update'])->name('api.frontend.instructor.update');
+    Route::delete('/frontend/instructor/{id}', [FrontendInstructorController::class, 'delete'])->name('api.frontend.instructor.delete');
+    
+    // ==================== ADMIN API ROUTES (Protected - Super Admin Only) ====================
+    
+    // Super Admin Management
+    Route::post('/admin/super-admin/register', [SuperAdminController::class, 'register'])->name('api.admin.super-admin.register');
+    Route::put('/admin/super-admin/{id}', [SuperAdminController::class, 'update'])->name('api.admin.super-admin.update');
+    Route::delete('/admin/super-admin/{id}', [SuperAdminController::class, 'delete'])->name('api.admin.super-admin.delete');
+    
+    // User Management (Admin can manage all users)
+    Route::get('/admin/users', [UserManagementController::class, 'index'])->name('api.admin.users.index');
+    Route::get('/admin/users/{id}', [UserManagementController::class, 'show'])->name('api.admin.users.show');
+    Route::post('/admin/users', [UserManagementController::class, 'store'])->name('api.admin.users.store');
+    Route::put('/admin/users/{id}', [UserManagementController::class, 'update'])->name('api.admin.users.update');
+    Route::delete('/admin/users/{id}', [UserManagementController::class, 'destroy'])->name('api.admin.users.destroy');
+    
+    // Instructor Management (Admin can manage all instructors)
+    Route::get('/admin/instructors', [InstructorManagementController::class, 'index'])->name('api.admin.instructors.index');
+    Route::get('/admin/instructors/{id}', [InstructorManagementController::class, 'show'])->name('api.admin.instructors.show');
+    Route::post('/admin/instructors', [InstructorManagementController::class, 'store'])->name('api.admin.instructors.store');
+    Route::put('/admin/instructors/{id}', [InstructorManagementController::class, 'update'])->name('api.admin.instructors.update');
+    Route::delete('/admin/instructors/{id}', [InstructorManagementController::class, 'destroy'])->name('api.admin.instructors.destroy');
     
 });
 
