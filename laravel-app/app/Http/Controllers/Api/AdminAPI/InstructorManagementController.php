@@ -44,7 +44,7 @@ class InstructorManagementController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to fetch instructors',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -87,7 +87,7 @@ class InstructorManagementController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to fetch instructor',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -127,7 +127,7 @@ class InstructorManagementController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to create instructor',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -166,7 +166,7 @@ class InstructorManagementController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to update instructor',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -199,7 +199,7 @@ class InstructorManagementController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to delete instructor',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }

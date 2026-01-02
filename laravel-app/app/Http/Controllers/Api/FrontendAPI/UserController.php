@@ -51,7 +51,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to register user',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -91,7 +91,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to update user',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -128,7 +128,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to delete user',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }

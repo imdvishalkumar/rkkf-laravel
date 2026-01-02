@@ -59,7 +59,7 @@ class SuperAdminController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to register super admin',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -99,7 +99,7 @@ class SuperAdminController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to update super admin',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -137,7 +137,7 @@ class SuperAdminController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to delete super admin',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }

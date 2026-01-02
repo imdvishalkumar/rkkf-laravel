@@ -53,7 +53,7 @@ class UserApiController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to create user',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }
@@ -79,7 +79,7 @@ class UserApiController extends Controller
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Failed to fetch users',
-                $e->getCode() ?: 500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }

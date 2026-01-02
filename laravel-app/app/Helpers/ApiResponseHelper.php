@@ -107,6 +107,15 @@ class ApiResponseHelper
     {
         return self::error($message, 500);
     }
+
+    /**
+     * Get valid HTTP status code from exception
+     */
+    public static function getStatusCode(\Exception $e, int $default = 500): int
+    {
+        $code = $e->getCode();
+        return (is_numeric($code) && $code > 0 && $code < 600) ? (int)$code : $default;
+    }
 }
 
 
