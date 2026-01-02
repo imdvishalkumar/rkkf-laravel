@@ -32,3 +32,4 @@ class UpdateSuperAdminRequest extends FormRequest
     }
 }
 
+

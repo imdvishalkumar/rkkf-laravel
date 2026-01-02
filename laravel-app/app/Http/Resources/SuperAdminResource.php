@@ -27,3 +27,4 @@ class SuperAdminResource extends JsonResource
     }
 }
 
+

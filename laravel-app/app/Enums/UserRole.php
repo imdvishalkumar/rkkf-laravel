@@ -17,11 +17,6 @@ enum UserRole: int
         };
     }
 
-    public function isUser(): bool
-    {
-        return $this === self::USER;
-    }
-
     public function isAdmin(): bool
     {
         return $this === self::ADMIN;

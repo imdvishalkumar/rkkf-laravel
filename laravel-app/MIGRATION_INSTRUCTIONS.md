@@ -169,3 +169,4 @@ If you need to modify any migration:
 - Run `php artisan migrate:refresh` (WARNING: This will drop and recreate tables, losing data)
 - Or create a new migration to alter the table structure
 
+

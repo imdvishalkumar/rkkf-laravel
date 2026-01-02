@@ -24,3 +24,4 @@ class CreateUserRequest extends FormRequest
     }
 }
 
+

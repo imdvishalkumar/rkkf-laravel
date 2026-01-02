@@ -27,3 +27,4 @@ class InstructorResource extends JsonResource
     }
 }
 
+
