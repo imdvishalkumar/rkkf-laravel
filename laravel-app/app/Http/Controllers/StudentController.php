@@ -3,39 +3,55 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\StudentService;
+use App\Services\BranchService;
+use App\Services\BeltService;
+use App\Http\Requests\Student\StoreStudentRequest;
+use App\Http\Requests\Student\UpdateStudentRequest;
 use App\Models\Student;
 use App\Models\Branch;
 use App\Models\Belt;
-use App\Models\Fee;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
+    protected $studentService;
+    protected $branchService;
+    protected $beltService;
+
+    public function __construct(
+        StudentService $studentService,
+        BranchService $branchService,
+        BeltService $beltService
+    ) {
+        $this->studentService = $studentService;
+        $this->branchService = $branchService;
+        $this->beltService = $beltService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Student::with(['branch', 'belt'])
-            ->where('active', 1);
-
-        // Apply filters if provided
+        $filters = [];
+        
         if ($request->has('branch_id') && $request->branch_id != 0) {
-            $query->where('branch_id', $request->branch_id);
+            $filters['branch_id'] = $request->branch_id;
         }
 
         if ($request->has('belt_id') && $request->belt_id != 0) {
-            $query->where('belt_id', $request->belt_id);
+            $filters['belt_id'] = $request->belt_id;
         }
 
         if ($request->has('startdate') && $request->has('enddate')) {
-            $query->whereBetween('doj', [$request->startdate, $request->enddate]);
+            $filters['start_date'] = $request->startdate;
+            $filters['end_date'] = $request->enddate;
         }
 
-        $students = $query->get();
-        $branches = Branch::all();
-        $belts = Belt::all();
+        $filters['active'] = 1;
+        $students = $this->studentService->getAllStudents($filters);
+        $branches = $this->branchService->getAllBranches();
+        $belts = $this->beltService->getAllBelts();
 
         return view('students.index', compact('students', 'branches', 'belts'));
     }
@@ -45,85 +61,52 @@ class StudentController extends Controller
      */
     public function create()
     {
-        $branches = Branch::all();
-        $belts = Belt::all();
+        $branches = $this->branchService->getAllBranches();
+        $belts = $this->beltService->getAllBelts();
         return view('students.create', compact('branches', 'belts'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreStudentRequest $request)
     {
-        $validated = $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'gender' => 'required|in:1,2',
-            'email' => 'required|email|unique:students,email|unique:users,email',
-            'belt' => 'required|exists:belt,belt_id',
-            'dmno' => 'nullable|string',
-            'dwno' => 'nullable|string',
-            'mmno' => 'nullable|string',
-            'mwno' => 'nullable|string',
-            'smno' => 'required|string',
-            'swno' => 'nullable|string',
-            'dob' => 'required|date',
-            'doj' => 'required|date',
-            'address' => 'nullable|string',
-            'branch_id' => 'required|exists:branch,branch_id',
-            'pincode' => 'nullable|string',
-            'fees' => 'required|numeric|min:0',
-            'months' => 'required|array|min:1',
-        ]);
-
-        DB::beginTransaction();
         try {
-            // Create student
-            $student = Student::create([
-                'firstname' => $validated['firstname'],
-                'lastname' => $validated['lastname'],
-                'gender' => $validated['gender'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['smno']),
-                'belt_id' => $validated['belt'],
-                'dadno' => $validated['dmno'] ?? null,
-                'dadwp' => $validated['dwno'] ?? null,
-                'momno' => $validated['mmno'] ?? null,
-                'momwp' => $validated['mwno'] ?? null,
-                'selfno' => $validated['smno'],
-                'selfwp' => $validated['swno'] ?? null,
-                'dob' => $validated['dob'],
-                'doj' => $validated['doj'],
-                'address' => $validated['address'] ?? null,
-                'branch_id' => $validated['branch_id'],
-                'pincode' => $validated['pincode'] ?? null,
+            $data = $request->validated();
+            
+            // Map form fields to model fields
+            $studentData = [
+                'firstname' => $data['firstname'],
+                'lastname' => $data['lastname'],
+                'gender' => $data['gender'],
+                'email' => $data['email'],
+                'password' => $data['selfno'] ?? $data['smno'] ?? null, // Service will hash it
+                'belt_id' => $data['belt_id'] ?? $data['belt'] ?? null,
+                'dadno' => $data['dadno'] ?? $data['dmno'] ?? null,
+                'dadwp' => $data['dadwp'] ?? $data['dwno'] ?? null,
+                'momno' => $data['momno'] ?? $data['mmno'] ?? null,
+                'momwp' => $data['momwp'] ?? $data['mwno'] ?? null,
+                'selfno' => $data['selfno'] ?? $data['smno'] ?? null,
+                'selfwp' => $data['selfwp'] ?? $data['swno'] ?? null,
+                'dob' => $data['dob'],
+                'doj' => $data['doj'],
+                'address' => $data['address'] ?? null,
+                'branch_id' => $data['branch_id'],
+                'pincode' => $data['pincode'] ?? null,
                 'active' => 1,
-            ]);
+            ];
 
-            // Create fees for selected months
-            $feePerMonth = $validated['fees'] / count($validated['months']);
-            $currentYear = date('Y');
-            $currentDate = date('Y-m-d');
-
-            foreach ($validated['months'] as $month) {
-                Fee::create([
-                    'student_id' => $student->student_id,
-                    'months' => $month,
-                    'year' => $currentYear,
-                    'date' => $currentDate,
-                    'amount' => $feePerMonth,
-                    'coupon_id' => 1, // Default coupon
-                    'additional' => 0,
-                    'disabled' => 0,
-                    'mode' => 'cash',
-                ]);
+            // Add fees data if provided
+            if (isset($data['fees']) && isset($data['months'])) {
+                $studentData['fees'] = ['amount' => $data['fees']];
+                $studentData['months'] = $data['months'];
             }
 
-            DB::commit();
+            $result = $this->studentService->createStudent($studentData);
+            
             return redirect()->route('students.index')
-                ->with('success', 'Student added successfully.');
+                ->with('success', $result['message']);
         } catch (\Exception $e) {
-            DB::rollBack();
             return back()->withInput()
                 ->with('error', 'Error adding student: ' . $e->getMessage());
         }
@@ -132,75 +115,90 @@ class StudentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Student $student)
+    public function show(int $id)
     {
-        $student->load(['branch', 'belt', 'fees']);
-        return view('students.show', compact('student'));
+        try {
+            $student = $this->studentService->getStudentById($id);
+            return view('students.show', compact('student'));
+        } catch (\Exception $e) {
+            return redirect()->route('students.index')
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Student $student)
+    public function edit(int $id)
     {
-        $branches = Branch::all();
-        $belts = Belt::all();
-        return view('students.edit', compact('student', 'branches', 'belts'));
+        try {
+            $student = $this->studentService->getStudentById($id);
+            $branches = $this->branchService->getAllBranches();
+            $belts = $this->beltService->getAllBelts();
+            return view('students.edit', compact('student', 'branches', 'belts'));
+        } catch (\Exception $e) {
+            return redirect()->route('students.index')
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Student $student)
+    public function update(UpdateStudentRequest $request, int $id)
     {
-        $validated = $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'gender' => 'required|in:1,2',
-            'email' => 'required|email|unique:students,email,' . $student->student_id . ',student_id|unique:users,email',
-            'belt_id' => 'required|exists:belt,belt_id',
-            'branch_id' => 'required|exists:branch,branch_id',
-            'dob' => 'required|date',
-            'doj' => 'required|date',
-        ]);
-
-        $student->update($validated);
-
-        return redirect()->route('students.index')
-            ->with('success', 'Student updated successfully.');
+        try {
+            $result = $this->studentService->updateStudent($id, $request->validated());
+            return redirect()->route('students.index')
+                ->with('success', $result['message']);
+        } catch (\Exception $e) {
+            return back()->withInput()
+                ->with('error', 'Error updating student: ' . $e->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Student $student)
+    public function destroy(int $id)
     {
-        $student->delete();
-        return redirect()->route('students.index')
-            ->with('success', 'Student deleted successfully.');
+        try {
+            $this->studentService->deleteStudent($id);
+            return redirect()->route('students.index')
+                ->with('success', 'Student deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('students.index')
+                ->with('error', 'Error deleting student: ' . $e->getMessage());
+        }
     }
 
     /**
      * Deactivate a student.
      */
-    public function deactivate(Student $student)
+    public function deactivate(int $id)
     {
-        $student->update(['active' => 0]);
-        return redirect()->route('students.index')
-            ->with('success', 'Student deactivated successfully.');
+        try {
+            $this->studentService->deactivateStudent($id);
+            return redirect()->route('students.index')
+                ->with('success', 'Student deactivated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('students.index')
+                ->with('error', 'Error deactivating student: ' . $e->getMessage());
+        }
     }
 
     /**
      * Reset student password.
      */
-    public function resetPassword(Student $student)
+    public function resetPassword(int $id)
     {
-        $password = $student->selfno;
-        $student->update([
-            'password' => Hash::make($password)
-        ]);
-
-        return redirect()->route('students.index')
-            ->with('success', "Student password reset successfully to: {$password}");
+        try {
+            $password = $this->studentService->resetPassword($id);
+            return redirect()->route('students.index')
+                ->with('success', "Student password reset successfully to: {$password}");
+        } catch (\Exception $e) {
+            return redirect()->route('students.index')
+                ->with('error', 'Error resetting password: ' . $e->getMessage());
+        }
     }
 }

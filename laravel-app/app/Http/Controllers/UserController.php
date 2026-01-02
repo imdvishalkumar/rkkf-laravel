@@ -3,17 +3,32 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use App\Services\UserService;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
+use App\Enums\UserRole;
 
 class UserController extends Controller
 {
+    protected $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::where('role', '!=', 0)->get();
+        $filters = [];
+        
+        if ($request->has('role')) {
+            $filters['role'] = $request->role;
+        }
+
+        $users = $this->userService->getAllUsers($filters);
         return view('users.index', compact('users'));
     }
 
@@ -22,93 +37,88 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('users.create');
+        $roles = UserRole::cases();
+        return view('users.create', compact('roles'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'mobile' => 'nullable|string|unique:users,mobile',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'role' => 'required|in:1,2',
-        ]);
-
-        User::create([
-            'firstname' => $validated['firstname'],
-            'lastname' => $validated['lastname'],
-            'mobile' => $validated['mobile'] ?? null,
-            'email' => $validated['email'],
-            'password' => $validated['password'], // Plain text for compatibility
-            'role' => $validated['role'],
-        ]);
-
-        return redirect()->route('users.index')
-            ->with('success', 'User added successfully.');
+        try {
+            $result = $this->userService->createUser($request->validated());
+            return redirect()->route('users.index')
+                ->with('success', $result['message']);
+        } catch (\Exception $e) {
+            return back()->withInput()
+                ->with('error', 'Error creating user: ' . $e->getMessage());
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(int $id)
     {
-        return view('users.show', compact('user'));
+        try {
+            $user = $this->userService->getUserById($id);
+            return view('users.show', compact('user'));
+        } catch (\Exception $e) {
+            return redirect()->route('users.index')
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $user)
+    public function edit(int $id)
     {
-        return view('users.edit', compact('user'));
+        try {
+            $user = $this->userService->getUserById($id);
+            $roles = UserRole::cases();
+            return view('users.edit', compact('user', 'roles'));
+        } catch (\Exception $e) {
+            return redirect()->route('users.index')
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, int $id)
     {
-        $validated = $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'mobile' => 'nullable|string|unique:users,mobile,' . $user->user_id . ',user_id',
-            'email' => 'required|email|unique:users,email,' . $user->user_id . ',user_id',
-            'password' => 'nullable|string|min:6',
-            'role' => 'required|in:1,2',
-        ]);
+        try {
+            $data = $request->validated();
+            
+            // Remove password from update if empty
+            if (isset($data['password']) && empty($data['password'])) {
+                unset($data['password']);
+            }
 
-        $updateData = [
-            'firstname' => $validated['firstname'],
-            'lastname' => $validated['lastname'],
-            'mobile' => $validated['mobile'] ?? null,
-            'email' => $validated['email'],
-            'role' => $validated['role'],
-        ];
-
-        if (!empty($validated['password'])) {
-            $updateData['password'] = $validated['password'];
+            $result = $this->userService->updateUser($id, $data);
+            return redirect()->route('users.index')
+                ->with('success', $result['message']);
+        } catch (\Exception $e) {
+            return back()->withInput()
+                ->with('error', 'Error updating user: ' . $e->getMessage());
         }
-
-        $user->update($updateData);
-
-        return redirect()->route('users.index')
-            ->with('success', 'User updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(int $id)
     {
-        // Soft delete by setting role to 0
-        $user->update(['role' => 0]);
-        
-        return redirect()->route('users.index')
-            ->with('success', 'User deleted successfully.');
+        try {
+            $this->userService->deleteUser($id);
+            return redirect()->route('users.index')
+                ->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('users.index')
+                ->with('error', 'Error deleting user: ' . $e->getMessage());
+        }
     }
 }

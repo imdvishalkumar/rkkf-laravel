@@ -25,3 +25,4 @@ class AttendanceResource extends JsonResource
 }
 
 
+

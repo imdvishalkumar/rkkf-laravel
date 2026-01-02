@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\OrderApiController;
 use App\Http\Controllers\Api\ExamApiController;
 use App\Http\Controllers\Api\EventApiController;
 use App\Http\Controllers\Api\AuthApiController;
+use App\Http\Controllers\Api\UserApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,11 +25,16 @@ use App\Http\Controllers\Api\AuthApiController;
 // ==================== AUTHENTICATION ROUTES (Public) ====================
 Route::post('/login', [AuthApiController::class, 'login'])->name('api.login');
 
+// ==================== USER MANAGEMENT ROUTES (Public - for registration) ====================
+Route::post('/users', [UserApiController::class, 'store'])->name('api.users.store');
+
 // ==================== PROTECTED API ROUTES (Require Token) ====================
 Route::middleware(['auth:sanctum'])->group(function () {
     
     // Authentication routes (require token)
     Route::get('/me', [AuthApiController::class, 'me'])->name('api.me');
+    // List users (requires authentication)
+    Route::get('/users', [UserApiController::class, 'index'])->name('api.users.index');
     Route::post('/logout', [AuthApiController::class, 'logout'])->name('api.logout');
     Route::post('/logout-all', [AuthApiController::class, 'logoutAll'])->name('api.logout-all');
     

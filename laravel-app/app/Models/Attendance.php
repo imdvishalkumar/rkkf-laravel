@@ -20,7 +20,7 @@ class Attendance extends Model
 
     protected $casts = [
         'date' => 'date',
-        'attend' => 'boolean',
+        'is_additional' => 'boolean',
     ];
 
     /**

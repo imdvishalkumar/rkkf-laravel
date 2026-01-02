@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('event_id')->constrained('event', 'event_id');
             $table->foreignId('student_id')->constrained('students', 'student_id');
             $table->string('attend', 50);
-            $table->foreignId('user_id')->constrained('users', 'user_id');
+            // Foreign key will be added in migration 2025_01_16_000038
+            $table->unsignedBigInteger('user_id');
             $table->timestamps();
             
             $table->index(['event_id', 'student_id']);

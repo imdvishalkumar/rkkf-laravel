@@ -17,7 +17,8 @@ return new class extends Migration
             $table->integer('hours');
             $table->date('date');
             $table->foreignId('branch_id')->constrained('branch', 'branch_id');
-            $table->foreignId('user_id')->constrained('users', 'user_id');
+            // Foreign key will be added in migration 2025_01_16_000038
+            $table->unsignedBigInteger('user_id');
             $table->timestamps();
             
             $table->index(['student_id', 'date']);

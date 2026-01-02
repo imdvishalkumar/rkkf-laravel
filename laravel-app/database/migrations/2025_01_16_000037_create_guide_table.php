@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id('id');
             $table->string('name', 100);
             $table->string('link', 512);
-            $table->foreignId('created_by')->constrained('users', 'user_id');
+            // Foreign key will be added in migration 2025_01_16_000038
+            $table->unsignedBigInteger('created_by');
             $table->integer('is_deleted')->default(0);
             $table->timestamps();
             
