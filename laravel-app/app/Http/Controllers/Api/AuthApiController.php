@@ -65,8 +65,16 @@ class AuthApiController extends Controller
             // Create new token
             $token = $user->createToken('api-token', ['*'])->plainTextToken;
 
+            // Determine response key based on role
+            $userKey = match(ApiResponseHelper::getRoleValue($user->role)) {
+                0 => 'user',
+                1 => 'admin',
+                2 => 'instructor',
+                default => 'user'
+            };
+
             return ApiResponseHelper::success([
-                'user' => [
+                $userKey => [
                     'user_id' => $user->user_id,
                     'firstname' => $user->firstname,
                     'lastname' => $user->lastname,
@@ -89,30 +97,13 @@ class AuthApiController extends Controller
         }
     }
 
+
     /**
-     * Get authenticated user information
+     * Unified logout endpoint for all roles
      * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function me(Request $request)
-    {
-        $user = $request->user();
-
-        return ApiResponseHelper::success([
-            'user' => [
-                'user_id' => $user->user_id,
-                'firstname' => $user->firstname,
-                'lastname' => $user->lastname,
-                'email' => $user->email,
-                'mobile' => $user->mobile,
-                'role' => $user->role,
-            ],
-        ], 'User information retrieved successfully');
-    }
-
-    /**
-     * Logout user and revoke token
+     * Supports optional parameter to logout from all devices:
+     * - Default: Revokes current token only
+     * - With "all_devices": true in request body, revokes all tokens
      * 
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -120,36 +111,24 @@ class AuthApiController extends Controller
     public function logout(Request $request)
     {
         try {
-            // Revoke the current token
-            $request->user()->currentAccessToken()->delete();
+            $user = $request->user();
+            $logoutAll = $request->input('all_devices', false);
 
-            return ApiResponseHelper::success(null, 'Logged out successfully');
+            if ($logoutAll) {
+                // Revoke all tokens for the user (logout from all devices)
+                $user->tokens()->delete();
+                $message = 'Logged out from all devices successfully';
+            } else {
+                // Revoke only the current token (logout from current device)
+                $request->user()->currentAccessToken()->delete();
+                $message = 'Logged out successfully';
+            }
+
+            return ApiResponseHelper::success(null, $message);
         } catch (\Exception $e) {
             return ApiResponseHelper::error(
                 'Logout failed',
-                500,
-                ['error' => $e->getMessage()]
-            );
-        }
-    }
-
-    /**
-     * Logout from all devices (revoke all tokens)
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function logoutAll(Request $request)
-    {
-        try {
-            // Revoke all tokens for the user
-            $request->user()->tokens()->delete();
-
-            return ApiResponseHelper::success(null, 'Logged out from all devices successfully');
-        } catch (\Exception $e) {
-            return ApiResponseHelper::error(
-                'Logout failed',
-                500,
+                ApiResponseHelper::getStatusCode($e),
                 ['error' => $e->getMessage()]
             );
         }

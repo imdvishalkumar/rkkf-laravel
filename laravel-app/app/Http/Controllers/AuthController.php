@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Api\FrontendAPI;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
@@ -32,7 +31,7 @@ class AuthController extends Controller
 
             // Set default role to USER (0) if not provided
             $validated['role'] = $validated['role'] ?? UserRole::USER->value;
-            
+
             // Ensure the role value is valid for the enum
             $role = UserRole::tryFrom($validated['role']);
             if (!$role) {
@@ -103,7 +102,7 @@ class AuthController extends Controller
 
             // Check password - support both plain text (legacy) and hashed passwords
             $passwordValid = false;
-            
+
             if ($user->password === $request->password) {
                 $passwordValid = true;
             } elseif (Hash::check($request->password, $user->password)) {
@@ -220,7 +219,7 @@ class AuthController extends Controller
             }
 
             $passwordValid = false;
-            
+
             if ($user->password === $request->password) {
                 $passwordValid = true;
             } elseif (Hash::check($request->password, $user->password)) {
