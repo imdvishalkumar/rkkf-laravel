@@ -29,7 +29,7 @@ class ProductService
     public function getProductById(int $id)
     {
         $product = $this->productRepository->find($id);
-        
+
         if (!$product) {
             throw new Exception('Product not found', 404);
         }
@@ -45,7 +45,7 @@ class ProductService
     public function createProduct(array $data): array
     {
         DB::beginTransaction();
-        
+
         try {
             $product = $this->productRepository->create($data);
 
@@ -66,7 +66,7 @@ class ProductService
     public function updateProduct(int $id, array $data): array
     {
         $product = $this->productRepository->find($id);
-        
+
         if (!$product) {
             throw new Exception('Product not found', 404);
         }
@@ -86,7 +86,7 @@ class ProductService
     public function deleteProduct(int $id): bool
     {
         $product = $this->productRepository->find($id);
-        
+
         if (!$product) {
             throw new Exception('Product not found', 404);
         }
@@ -99,9 +99,9 @@ class ProductService
      * Returns products with variations where qty > 0
      * Filters by belt_id if provided (checks if belt_id is in comma-separated belt_ids string)
      */
-    public function getProductList(?int $beltId = null, int $perPage = 10, int $page = 1)
+    public function getProductList(?int $beltId = null, ?int $productCategoryId = null, ?string $productCategoryName = null, ?string $search = null, int $perPage = 10, int $page = 1)
     {
-        return $this->productRepository->getProductList($beltId, $perPage, $page);
+        return $this->productRepository->getProductList($beltId, $productCategoryId, $productCategoryName, $search, $perPage, $page);
     }
 }
 

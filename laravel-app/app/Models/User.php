@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Enums\UserRole;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
@@ -23,6 +24,7 @@ class User extends Authenticatable
     protected $table = 'users';
     protected $primaryKey = 'user_id';
     public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'firstname',
@@ -31,6 +33,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        // Note: profile_img column exists only in students table, not users table
     ];
 
     /**
@@ -59,6 +62,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the student record associated with the user via email.
+     */
+    public function student()
+    {
+        return $this->hasOne(Student::class, 'email', 'email');
+    }
+
+    /**
      * Get the user's full name.
      */
     public function getNameAttribute(): string
@@ -66,28 +77,21 @@ class User extends Authenticatable
         return $this->firstname . ' ' . $this->lastname;
     }
 
-    /**
-     * Check if user is a regular user (using RBAC)
-     */
-    public function isUser(): bool
-    {
-        return $this->hasRole('student');
-    }
 
     /**
-     * Check if user is admin (using RBAC)
+     * Check if user is admin (using direct attribute)
      */
     public function isAdmin(): bool
     {
-        return $this->hasRole('admin');
+        return $this->role === UserRole::ADMIN;
     }
 
     /**
-     * Check if user is instructor (using RBAC)
+     * Check if user is instructor (using direct attribute)
      */
     public function isInstructor(): bool
     {
-        return $this->hasRole('instructor');
+        return $this->role === UserRole::INSTRUCTOR;
     }
 
     /**
@@ -118,5 +122,81 @@ class User extends Authenticatable
 
         $specialUsers = config('roles.special_users', []);
         return $specialUsers[$this->email]['redirect_route'] ?? null;
+    }
+
+    /**
+     * Validate that Spatie role exists in database
+     * Never auto-creates roles - only validates existence
+     * 
+     * @param string $roleName
+     * @return bool
+     */
+    public static function validateSpatieRoleExists(string $roleName): bool
+    {
+        try {
+            $role = \Spatie\Permission\Models\Role::where('name', $roleName)->first();
+
+            if (!$role) {
+                Log::critical('Role misconfiguration detected: Spatie role missing', [
+                    'role_name' => $roleName,
+                    'context' => 'Role validation',
+                ]);
+                return false;
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            Log::critical('Role misconfiguration detected: Exception during role validation', [
+                'role_name' => $roleName,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Ensure user has the correct Spatie role assigned based on their role attribute
+     * Validates role exists before assignment
+     */
+    public function ensureSpatieRole(): void
+    {
+        if (!$this->role instanceof UserRole) {
+            Log::critical('Role misconfiguration detected: Invalid role type', [
+                'user_id' => $this->user_id,
+                'email' => $this->email,
+                'role_value' => $this->role,
+            ]);
+            abort(500, 'System role misconfigured');
+        }
+
+        $spatieRoleName = $this->role->spatieRole();
+
+        // Validate role exists - never auto-create
+        if (!self::validateSpatieRoleExists($spatieRoleName)) {
+            abort(500, 'System role misconfigured');
+        }
+
+        // Assign role if not already assigned
+        if (!$this->hasRole($spatieRoleName)) {
+            $this->assignRole($spatieRoleName);
+        }
+    }
+
+    /**
+     * Get the name of the unique identifier for the user.
+     * This ensures Sanctum uses 'user_id' instead of 'id'
+     */
+    public function getAuthIdentifierName(): string
+    {
+        return 'user_id';
+    }
+
+    /**
+     * Get the unique identifier for the user.
+     * This ensures Sanctum uses 'user_id' instead of 'id'
+     */
+    public function getAuthIdentifier()
+    {
+        return $this->user_id;
     }
 }

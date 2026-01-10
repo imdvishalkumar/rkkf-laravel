@@ -15,44 +15,29 @@ class ProductListResource extends JsonResource
      */
     public function toArray($request)
     {
-        $r = is_array($this->resource) ? (object) $this->resource : $this->resource;
-
-        $baseUrl = rtrim(config('app.url'), '/') . '/images/products/';
+        $baseUrl = url('images/products') . '/';
         $placeholder = $baseUrl . 'placeholder.png';
 
         $makeImageUrl = function ($file) use ($baseUrl, $placeholder) {
             if (empty($file)) {
                 return $placeholder;
             }
-
-            // Ensure we only use the filename portion
-            $basename = basename($file);
-            $ext = pathinfo($basename, PATHINFO_EXTENSION);
-            $name = pathinfo($basename, PATHINFO_FILENAME);
-
-            // Slugify the filename (remove spaces/special chars)
-            $safe = Str::slug($name);
-
-            $safeFilename = $safe . ($ext ? '.' . $ext : '');
-
-            return $baseUrl . $safeFilename;
+            // Just return the base URL + filename, avoiding complex slugification
+            return $baseUrl . basename($file);
         };
 
+        // Get the first variation if variations relationship is loaded
+        $firstVariation = $this->variations->first();
+
         return [
-            'product_id' => $r->product_id ?? null,
-            'name' => $r->name ?? null,
-            'details' => $r->details ?? null,
-            'image1' => $makeImageUrl($r->image1),
-            'image2' => $makeImageUrl($r->image2),
-            'image3' => $makeImageUrl($r->image3),
-            'belt_ids' => $r->belt_ids ?? null,
-            'is_active' => isset($r->is_active) ? (int) $r->is_active : null,
-            'variation' => [
-                'variation_id' => $r->id ?? $r->variation_id ?? null,
-                'variation' => $r->variation ?? null,
-                'price' => $r->price ?? null,
-                'qty' => $r->qty ?? null,
-            ],
+            'product_id' => $this->product_id,
+            'name' => $this->name,
+            // 'details' => $this->details,
+            'image1' => $makeImageUrl($this->image1),
+            'share_product_link' => url('product/' . $this->product_id),
+            'price' => $firstVariation ? $firstVariation->price : null,
+            'rating' => $this->rating,
+            'reviews_count' => $this->reviews_count,
         ];
     }
 }

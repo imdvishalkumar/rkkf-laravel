@@ -53,7 +53,7 @@ class ProductRepository implements ProductRepositoryInterface
     public function update(int $id, array $data): bool
     {
         $product = $this->find($id);
-        
+
         if (!$product) {
             return false;
         }
@@ -64,7 +64,7 @@ class ProductRepository implements ProductRepositoryInterface
     public function delete(int $id): bool
     {
         $product = $this->find($id);
-        
+
         if (!$product) {
             return false;
         }
@@ -83,17 +83,42 @@ class ProductRepository implements ProductRepositoryInterface
      * If belt_id provided, filters products where belt_id is in comma-separated belt_ids string
      * Returns flattened structure matching core PHP API (product + variation fields in same row)
      */
-    public function getProductList(?int $beltId = null, int $perPage = 10, int $page = 1): LengthAwarePaginator
+    public function getProductList(?int $beltId = null, ?int $productCategoryId = null, ?string $productCategoryName = null, ?string $search = null, int $perPage = 10, int $page = 1): LengthAwarePaginator
     {
         $query = $this->model->newQuery()
-            ->join('variation as v', 'products.product_id', '=', 'v.product_id')
-            ->where('v.qty', '>', 0)
-            ->select('products.*', 'v.id', 'v.variation', 'v.price', 'v.qty');
+            ->with([
+                'variations' => function ($q) {
+                    $q->where('qty', '>', 0);
+                },
+                'productCategory' // Eager load category for search optimization if needed
+            ])
+            ->whereHas('variations', function ($q) {
+                $q->where('qty', '>', 0);
+            })
+            ->where('is_active', 1);
 
         if ($beltId) {
             // Filter products where belt_id is in comma-separated belt_ids string
-            // Using FIND_IN_SET for MySQL compatibility
             $query->whereRaw('FIND_IN_SET(?, products.belt_ids)', [$beltId]);
+        }
+
+        if ($productCategoryId) {
+            $query->where('product_category_id', $productCategoryId);
+        }
+
+        if ($productCategoryName) {
+            $query->join('product_categories', 'products.product_category_id', '=', 'product_categories.id')
+                ->where('product_categories.name', 'like', '%' . $productCategoryName . '%')
+                ->select('products.*');
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('products.name', 'like', '%' . $search . '%')
+                    ->orWhereHas('productCategory', function ($q2) use ($search) {
+                        $q2->where('name', 'like', '%' . $search . '%');
+                    });
+            });
         }
 
         return $query->orderBy('products.product_id', 'desc')
