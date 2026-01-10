@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('attendance', function (Blueprint $table) {
@@ -15,7 +16,7 @@ return new class extends Migration {
             $table->integer('branch_id');
             $table->integer('user_id');
             $table->tinyInteger('is_additional');
-
+            
             $table->primary('attendance_id');
             $table->index(['student_id', 'date', 'branch_id']);
         });
