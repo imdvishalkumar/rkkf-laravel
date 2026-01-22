@@ -43,7 +43,7 @@ Route::post('/admin/login', [SuperAdminController::class, 'login']);
 Route::post('/forgot-password', [AuthApiController::class, 'forgotPassword']);
 Route::post('/verify-reset-token', [AuthApiController::class, 'verifyResetToken']);
 Route::post('/update-password', [AuthApiController::class, 'updatePassword']);
-
+Route::get('exams/results/{certificate_no}/download', [ExamApiController::class, 'downloadResultCertificate'])->name('api.exams.results.download');
 /*
 |--------------------------------------------------------------------------
 | Protected APIs
@@ -96,7 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // fetch branch
-    Route::prefix('branches')->group(function () {
+    Route::prefix('branch')->group(function () {
         Route::get('/', [BranchApiController::class, 'index']);
     });
 
