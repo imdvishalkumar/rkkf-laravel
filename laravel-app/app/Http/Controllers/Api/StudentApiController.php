@@ -258,7 +258,7 @@ class StudentApiController extends Controller
             $user = $request->user();
 
             // Get student associated with user
-            $student = \App\Models\Student::where('email', $user->email)->first();
+            $student = \App\Models\Student::with(['branch', 'belt'])->where('email', $user->email)->first();
 
             if (!$student) {
                 return ApiResponseHelper::error('Student profile not found', 404);
@@ -270,6 +270,13 @@ class StudentApiController extends Controller
             } else {
                 $student->profile_img_url = asset('images/default-avatar.png');
             }
+
+            // Replace IDs with Names
+            $student->branch_id = $student->branch ? $student->branch->name : $student->branch_id;
+            $student->belt_id = $student->belt ? $student->belt->name : $student->belt_id;
+
+            // Hide the relationship objects from the response
+            $student->makeHidden(['branch', 'belt']);
 
             return ApiResponseHelper::success($student, 'Profile retrieved successfully');
         } catch (Exception $e) {
