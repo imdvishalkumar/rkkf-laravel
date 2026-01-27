@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\CouponApiController;
 use App\Http\Controllers\Api\FileUploadController;
 use App\Http\Controllers\Api\InstructorApiController;
 use App\Http\Controllers\Api\BeltApiController;
+use App\Http\Controllers\Api\ContactInfoController;
 
 use App\Http\Controllers\Api\AdminAPI\UnifiedUserController;
 use App\Http\Controllers\Api\FrontendAPI\UserController as FrontendUserController;
@@ -105,7 +106,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Branch APIs
         Route::get('branches', [InstructorApiController::class, 'getAllBranches']);
         Route::get('branches/{id}/days', [InstructorApiController::class, 'getBranchDays']);
-
         Route::get('students/search', [InstructorApiController::class, 'searchStudents']);
         Route::post('attendance/count', [InstructorApiController::class, 'getAttendanceCount']);
         Route::post('fastrack/attendance', [InstructorApiController::class, 'insertFastrackAttendance']);
@@ -242,6 +242,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Notifications API
     Route::get('notifications', [NotificationApiController::class, 'index']);
+
+    // Contact Info API
+    Route::get('contact-info', [ContactInfoController::class, 'index']);
+    Route::post('contact-info', [ContactInfoController::class, 'store']);
 
 });
 
